@@ -1,31 +1,36 @@
-version: '3.1'
-
+version: '3.3'
 services:
+  backend:
+    container_name: backend
+    build: ./simple-api
+    networks:
+      - app-network
+    depends_on:
+      - database
 
-  wordpress:
-    image: wordpress
+  database:
+    container_name: database
     restart: always
+    build: ./database
+    networks:
+      - app-network
+    env_file:
+      - database/.env
+
+  httpd:
+    container_name: reverse_proxy
+    build: ./httpd
     ports:
-      - 8080:80
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: exampleuser
-      WORDPRESS_DB_PASSWORD: examplepass
-      WORDPRESS_DB_NAME: exampledb
-    volumes:
-      - wordpress:/var/www/html
+      - "80:80"
+    networks:
+      - app-network
 
-  db:
-    image: mysql:5.7
-    restart: always
-    environment:
-      MYSQL_DATABASE: exampledb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db:/var/lib/mysql
 
 volumes:
-  wordpress:
-  db:
+  my_db_volume:
+    driver: local
+
+networks:
+  app-network:
+
+
